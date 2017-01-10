@@ -10,6 +10,13 @@ block content
 
 	script(type="text/javascript" src='/socket.io/socket.io.js')
 
+	style.
+		hr { margin-bottom: 5px; }
+		.status-check {
+			margin-bottom: 15px;
+		}
+
+
 	.content.content-alt(ng-controller="LaunchpadController")
 		.container(ng-cloak)
 			.row
@@ -77,6 +84,9 @@ block content
 													span(ng-show="!registerForm.inflight") #{translate("register")}
 													span(ng-show="registerForm.inflight") #{translate("registering")}...
 
+								<!-- break -->
+								hr
+
 								<!-- status indicators -->
 								.row
 									.col-md-12.status-indicators
@@ -84,10 +94,10 @@ block content
 										h3 Status Checks
 
 										<!-- ide js -->
-										.row
-											.col-sm-6
+										.row.status-check
+											.col-sm-5
 												| Editor
-											.col-sm-6
+											.col-sm-7
 												div(ng-switch="statusChecks.ideJs.status")
 
 													span(ng-switch-when="inflight")
@@ -101,15 +111,15 @@ block content
 													span(ng-switch-when="error")
 														i.fa.fa-exclamation
 														span &nbsp;Error
-														div
+														div.alert.alert-danger
 															| {{ statusChecks.ideJs.error }}
 
 
 										<!-- websocket -->
-										.row
-											.col-sm-6
+										.row.status-check
+											.col-sm-5
 												| Websockets
-											.col-sm-6
+											.col-sm-7
 												div(ng-switch="statusChecks.websocket.status")
 
 													span(ng-switch-when="inflight")
@@ -123,9 +133,41 @@ block content
 													span(ng-switch-when="error")
 														i.fa.fa-exclamation
 														span &nbsp;Error
-														div
+														div.alert.alert-danger
 															| {{ statusChecks.websocket.error }}
 
 
+										<!-- health-check -->
+										.row.status-check
+											.col-sm-5
+												| Server Health-check
+											.col-sm-7
+												div(ng-switch="statusChecks.healthCheck.status")
+
+													span(ng-switch-when="inflight")
+														i.fa.fa-fw.fa-spinner.fa-spin
+														span &nbsp;Checking
+
+													span(ng-switch-when="ok")
+														i.fa.fa-check
+														span &nbsp;Ok
+
+													span(ng-switch-when="error")
+														i.fa.fa-exclamation
+														span &nbsp;Error
+														div.alert.alert-danger
+															| {{ statusChecks.healthCheck.error.message }}
+
+								<!-- break -->
+								hr
 
 
+								<!-- Go to ShareLaTex -->
+								.row
+									.col-md-12
+										.text-center
+											br
+											p
+												a(href="/project").btn.btn-lg.btn-primary
+													| Go To ShareLaTeX
+											br

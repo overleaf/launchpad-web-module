@@ -3,7 +3,6 @@ define [
 ], (App) ->
 
 	App.controller "LaunchpadController", ($scope, $http, $timeout) ->
-		console.log ">> launchpad"
 
 		$scope.adminUserExists = window.data.adminUserExists
 		$scope.ideJsPath = window.data.ideJsPath
@@ -12,10 +11,10 @@ define [
 		$scope.statusChecks = {
 			ideJs: {status: 'inflight', error: null},
 			websocket: {status: 'inflight', error: null}
+			healthCheck: {status: 'inflight', error: null}
 		}
 
 		$scope.onSuccess = (data, status) ->
-			console.log ">> here", data, status
 			if status == 200
 				$scope.createAdminSuccess = true
 
@@ -30,10 +29,14 @@ define [
 						$scope.statusChecks.ideJs.status = 'ok'
 				.error (data, status, headers) ->
 						$scope.statusChecks.ideJs.status = 'error'
-						$scope.statusChecks.ideJs.error = new Error('status code ' + status)
+						$scope.statusChecks.ideJs.error = new Error('Http status: ' + status)
 
 		$scope.tryOpenWebSocket = () ->
 			$scope.statusChecks.websocket.status = 'inflight'
+			if !io?
+				$scope.statusChecks.websocket.status = 'error'
+				$scope.statusChecks.websocket.error = 'socket.io not loaded'
+				return
 			socket = io.connect null,
 				reconnect: false
 				'connect timeout': 30 * 1000
@@ -56,16 +59,35 @@ define [
 				$scope.$apply () ->
 				console.log ">> failed"
 
+		$scope.tryHealthCheck = () ->
+			$scope.statusChecks.healthCheck.status = 'inflight'
+			$http
+				.get('/health_check')
+				.success (data, status, headers) ->
+					if status >= 200 && status < 300
+						$scope.statusChecks.healthCheck.status = 'ok'
+				.error (data, status, headers) ->
+					console.log ">> failed"
+					console.log data
+					console.log status
+					$scope.statusChecks.healthCheck.status = 'error'
+					$scope.statusChecks.healthCheck.error = new Error('Http status: ' + status)
+
 		$scope.runStatusChecks = () ->
 			$timeout(
 				() ->
 					$scope.tryFetchIdeJs()
-				, 1000
+				, 4000
 			)
 			$timeout(
 				() ->
 					$scope.tryOpenWebSocket()
-				, 2000
+				, 8000
+			)
+			$timeout(
+				() ->
+					$scope.tryHealthCheck()
+				, 12000
 			)
 
 		# kick off the status checks on load
