@@ -26,10 +26,10 @@ define [
 		$scope.onCreateAdminSuccess = (data, status) ->
 			if status == 200
 				$scope.createAdminSuccess = true
-				setTimeout(
-					() ->
-						window.location.reload(false)
-				, 2000)
+				# setTimeout(
+				# 	() ->
+				# 		window.location.reload(false)
+				# , 2000)
 
 		$scope.sendTestEmail = () ->
 			$scope.testEmail.inflight = true
@@ -121,4 +121,5 @@ define [
 			# )
 
 		# kick off the status checks on load
-		$scope.runStatusChecks()
+		if $scope.adminUserExists
+			$scope.runStatusChecks()

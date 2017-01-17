@@ -29,7 +29,7 @@ module.exports = LaunchpadController =
 				if !adminExists
 					res.render Path.resolve(__dirname, "../views/launchpad"), {adminUserExists: adminExists}
 				else
-					res.redirect '/login'
+					AuthenticationController._redirectToLoginPage(req, res)
 			else
 				UserGetter.getUser sessionUser._id, {isAdmin: 1}, (err, user) ->
 					if err?
@@ -37,7 +37,7 @@ module.exports = LaunchpadController =
 					if user.isAdmin
 						res.render Path.resolve(__dirname, "../views/launchpad"), {adminUserExists: adminExists}
 					else
-						res.redirect '/login'
+						AuthenticationController._redirectToLoginPage(req, res)
 
 	_atLeastOneAdminExists: (callback=(err, exists)->) ->
 		UserGetter.getUser {isAdmin: true}, {_id: 1, isAdmin: 1}, (err, user) ->
@@ -94,20 +94,18 @@ module.exports = LaunchpadController =
 							logger.err {user_id: user._id, err}, "error setting user to admin"
 							return next(err)
 
-						UserHandler.populateGroupLicenceInvite(user, ->)
+						# req.login user, (err) ->
+						# 	return callback(error) if error?
+						# 	req.session.justRegistered = true
+						# 	# copy to the old `session.user` location, for backward-comptability
+						# 	req.session.user = req.session.passport.user
+						# 	AuthenticationController._clearRedirectFromSession(req)
+						# 	UserSessionsManager.trackSession(user, req.sessionID, () ->)
 
-						req.login user, (err) ->
-							return callback(error) if error?
-							req.session.justRegistered = true
-							# copy to the old `session.user` location, for backward-comptability
-							req.session.user = req.session.passport.user
-							AuthenticationController._clearRedirectFromSession(req)
-							UserSessionsManager.trackSession(user, req.sessionID, () ->)
-
-							res.json
-								redir: redir
-								id: user._id.toString()
-								first_name: user.first_name
-								last_name: user.last_name
-								email: user.email
-								created: Date.now()
+						res.json
+							redir: ''
+							id: user._id.toString()
+							first_name: user.first_name
+							last_name: user.last_name
+							email: user.email
+							created: Date.now()

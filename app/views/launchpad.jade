@@ -21,7 +21,7 @@ block content
 	.content.content-alt(ng-controller="LaunchpadController")
 		.container(ng-cloak)
 			.row
-				.col-md-10.col-md-offset-1
+				.col-md-8.col-md-offset-2
 					.card.launchpad-body
 						.row
 							.col-md-12
@@ -82,7 +82,9 @@ block content
 										.row(ng-if="createAdminSuccess")
 											.col-md-12.text-center
 												.alert.alert-success
-													| Created admin user, Reloading...
+													| Created admin user, Log in&nbsp;
+													a(href="/login?redir=/launchpad") here
+													| &nbsp;to continue
 
 										br
 
@@ -142,7 +144,7 @@ block content
 
 									<!-- other actions -->
 									.row
-										.col-md-10
+										.col-md-12
 											h2 Other Actions
 
 											h3 Send a Test Email
