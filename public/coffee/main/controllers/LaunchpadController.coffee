@@ -14,18 +14,48 @@ define [
 			healthCheck: {status: 'inflight', error: null}
 		}
 
-		$scope.onSuccess = (data, status) ->
+		$scope.testEmail = {
+			emailAddress: ''
+			inflight: false
+			status: null # | 'ok' | 'success'
+		}
+
+		$scope.shouldShowAdminForm = () ->
+			!$scope.adminUserExists
+
+		$scope.onCreateAdminSuccess = (data, status) ->
 			if status == 200
 				$scope.createAdminSuccess = true
+				setTimeout(
+					() ->
+						window.location.reload(false)
+				, 2000)
+
+		$scope.sendTestEmail = () ->
+			$scope.testEmail.inflight = true
+			$scope.testEmail.status = null
+			console.log ">> sending test email"
+			$http
+				.post('/launchpad/send_test_email', {
+					email: $scope.testEmail.emailAddress,
+					_csrf: window.csrfToken
+				})
+				.success (data, status, headers) ->
+					$scope.testEmail.inflight = false
+					if status >= 200 && status < 300
+						console.log ">> sent email"
+						$scope.testEmail.status = 'ok'
+				.error (data, status, headers) ->
+					$scope.testEmail.inflight = false
+					console.log ">> email error"
+					$scope.testEmail.status = 'error'
 
 		$scope.tryFetchIdeJs = () ->
 			$scope.statusChecks.ideJs.status = 'inflight'
 			$http
 				.get($scope.ideJsPath)
 				.success (data, status, headers) ->
-					console.log '>> ', status
 					if status >= 200 && status < 300
-						console.log ">> here, yeah"
 						$scope.statusChecks.ideJs.status = 'ok'
 				.error (data, status, headers) ->
 						$scope.statusChecks.ideJs.status = 'error'
@@ -84,11 +114,11 @@ define [
 					$scope.tryOpenWebSocket()
 				, 8000
 			)
-			$timeout(
-				() ->
-					$scope.tryHealthCheck()
-				, 12000
-			)
+			# $timeout(
+			# 	() ->
+			# 		$scope.tryHealthCheck()
+			# 	, 12000
+			# )
 
 		# kick off the status checks on load
 		$scope.runStatusChecks()

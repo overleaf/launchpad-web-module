@@ -21,17 +21,44 @@ module.exports = LaunchpadController =
 	launchpad: (req, res, next) ->
 		# TODO: check if we're using external auth?
 		#   * how does all this work with ldap and saml?
-		LaunchpadController._atLeastOneAdminExists (err, exists) ->
+		sessionUser = AuthenticationController.getSessionUser(req)
+		LaunchpadController._atLeastOneAdminExists (err, adminExists) ->
 			if err?
 				return next(err)
-			res.render Path.resolve(__dirname, "../views/launchpad"), {adminUserExists: exists}
+			if !sessionUser
+				if !adminExists
+					res.render Path.resolve(__dirname, "../views/launchpad"), {adminUserExists: adminExists}
+				else
+					res.redirect '/login'
+			else
+				UserGetter.getUser sessionUser._id, {isAdmin: 1}, (err, user) ->
+					if err?
+						return next(err)
+					if user.isAdmin
+						res.render Path.resolve(__dirname, "../views/launchpad"), {adminUserExists: adminExists}
+					else
+						res.redirect '/login'
 
 	_atLeastOneAdminExists: (callback=(err, exists)->) ->
 		UserGetter.getUser {isAdmin: true}, {_id: 1, isAdmin: 1}, (err, user) ->
-			console.log ">>", user?
 			if err?
 				return callback(err)
 			return callback(null, user?)
+
+	sendTestEmail: (req, res, next) ->
+		# TODO: require admin login
+		email = req.body.email
+		if !email
+			logger.log {}, "no email address supplied"
+			return res.sendStatus(400)
+		logger.log {email}, "sending test email"
+		emailOptions =
+			to: email
+		EmailHandler.sendEmail "testEmail", emailOptions, (err) ->
+			if err?
+				logger.err {email}, "error sending test email"
+				return next(err)
+			res.sendStatus(201)
 
 	registerAdmin: (req, res, next) ->
 		logger.log email: req.body.email, "attempted register first admin user"
