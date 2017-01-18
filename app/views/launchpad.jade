@@ -46,6 +46,7 @@ block content
 										// Local Auth Form
 										div(ng-if="authMethod == 'local'")
 											form(async-form="register", name="registerForm", on-success="onCreateAdminSuccess"
+													on-error="onCreateAdminError"
 													action="/launchpad/register_admin", method="POST", ng-cloak)
 												input(name='_csrf', type='hidden', value=csrfToken)
 												form-messages(for="registerForm")
@@ -89,6 +90,7 @@ block content
 												| Choose an email address for the first ShareLaTeX admin account. This should correspond to an account in the SAML system. You will then be asked to log in with this account.
 
 											form(async-form="register", name="registerLdapForm", on-success="onCreateAdminSuccess"
+													on-error="onCreateAdminError"
 													action="/launchpad/register_ldap_admin", method="POST", ng-cloak)
 												input(name='_csrf', type='hidden', value=csrfToken)
 												form-messages(for="registerLdapForm")
@@ -121,6 +123,7 @@ block content
 												| Choose an email address for the first ShareLaTeX admin account. This should correspond to an account in the SAML system. You will then be asked to log in with this account.
 
 											form(async-form="register", name="registerSamlForm", on-success="onCreateAdminSuccess"
+													on-error="onCreateAdminError"
 													action="/launchpad/register_saml_admin", method="POST", ng-cloak)
 												input(name='_csrf', type='hidden', value=csrfToken)
 												form-messages(for="registerSamlForm")
@@ -153,6 +156,12 @@ block content
 													| Created admin user,&nbsp;
 													a(href="/login?redir=/launchpad") Log in here
 													| &nbsp;to continue
+
+										<!-- error message -->
+										.row(ng-if="createAdminError")
+											.col-md-12.text-center
+												.alert.alert-danger
+													| Something went wrong :(
 
 										br
 

@@ -8,15 +8,8 @@ define [
 		$scope.ideJsPath = window.data.ideJsPath
 		$scope.authMethod = window.data.authMethod
 
-		$scope.loginLink = () ->
-			if authMethod == 'local'
-				'/login?redir=/launchpad'
-			else if authMethod == 'ldap'
-				'/ldap/login?redir=/launchpad'
-			eles if authMethod == 'saml'
-				'/saml/login?redir=/launchpad'
-
 		$scope.createAdminSuccess = null
+		$scope.createAdminError = null
 
 		$scope.statusChecks = {
 			ideJs: {status: 'inflight', error: null},
@@ -34,12 +27,11 @@ define [
 			!$scope.adminUserExists
 
 		$scope.onCreateAdminSuccess = (data, status) ->
-			if status == 200
+			if status >= 200 && status < 300
 				$scope.createAdminSuccess = true
-				# setTimeout(
-				# 	() ->
-				# 		window.location.reload(false)
-				# , 2000)
+
+		$scope.onCreateAdminError = (data, status) ->
+			$scope.createAdminError = true
 
 		$scope.sendTestEmail = () ->
 			$scope.testEmail.inflight = true
