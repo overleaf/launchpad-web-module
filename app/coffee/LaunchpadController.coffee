@@ -20,7 +20,6 @@ AuthenticationController = require("../../../../app/js/Features/Authentication/A
 module.exports = LaunchpadController =
 
 	_getAuthMethod: () ->
-		return 'ldap'  # DEBUG
 		if Settings.ldap
 			'ldap'
 		else if Settings.saml
@@ -70,11 +69,47 @@ module.exports = LaunchpadController =
 			logger.log {email}, "sent test email"
 			res.sendStatus(201)
 
-	registerLdapAdmin: (req, res, next) ->
-		if LaunchpadController._getAuthMethod() != 'ldap'
-			logger.log {}, "trying to register ldap admin but ldap is not enabled, disallow"
-			return res.sendStatus(403)
-		res.sendStatus(201)
+	registerExternalAuthAdmin: (authMethod) ->
+		return (req, res, next) ->
+			if LaunchpadController._getAuthMethod() != authMethod
+				logger.log {authMethod}, "trying to register external admin, but that auth service is not enabled, disallow"
+				return res.sendStatus(403)
+			email = req.body.email
+			if !email
+				logger.log {authMethod}, "no email supplied, disallow"
+				return res.sendStatus(400)
+
+			logger.log {email}, "attempted register first admin user"
+			LaunchpadController._atLeastOneAdminExists (err, exists) ->
+				if err?
+					return next(err)
+
+				if exists
+					logger.log {email}, "already have at least one admin user, disallow"
+					return res.sendStatus(403)
+
+				body = {
+					email: email
+					password: 'password_here'
+					first_name: email
+					last_name: ''
+				}
+				logger.log {body, authMethod}, "creating admin account for specified external-auth user"
+
+				UserRegistrationHandler.registerNewUser body, (err, user) ->
+					if err?
+						logger.err {err, email, authMethod}, "error with registerNewUser"
+						return next(err)
+
+					User.update {_id: user._id}, {$set: {isAdmin: true}}, (err) ->
+						if err?
+							logger.err {user_id: user._id, err}, "error setting user to admin"
+							return next(err)
+
+						AuthenticationController._setRedirectInSession(req, '/launchpad')
+						logger.log {email, user_id: user._id, authMethod}, "created first admin account"
+
+						return res.json {redir: '/launchpad'}
 
 	registerSamlAdmin: (req, res, next) ->
 		if LaunchpadController._getAuthMethod() != 'saml'
@@ -83,7 +118,12 @@ module.exports = LaunchpadController =
 		res.sendStatus(201)
 
 	registerAdmin: (req, res, next) ->
-		logger.log email: req.body.email, "attempted register first admin user"
+		email = req.body.email
+		if !email
+			logger.log {}, "no email supplied, disallow"
+			return res.sendStatus(400)
+
+		logger.log {email}, "attempted register first admin user"
 		LaunchpadController._atLeastOneAdminExists (err, exists) ->
 			if err?
 				return next(err)
@@ -116,6 +156,7 @@ module.exports = LaunchpadController =
 							logger.err {user_id: user._id, err}, "error setting user to admin"
 							return next(err)
 
+						logger.log {email, user_id: user._id}, "created first admin account"
 						res.json
 							redir: ''
 							id: user._id.toString()

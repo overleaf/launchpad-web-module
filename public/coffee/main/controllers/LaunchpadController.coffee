@@ -8,6 +8,14 @@ define [
 		$scope.ideJsPath = window.data.ideJsPath
 		$scope.authMethod = window.data.authMethod
 
+		$scope.loginLink = () ->
+			if authMethod == 'local'
+				'/login?redir=/launchpad'
+			else if authMethod == 'ldap'
+				'/ldap/login?redir=/launchpad'
+			eles if authMethod == 'saml'
+				'/saml/login?redir=/launchpad'
+
 		$scope.createAdminSuccess = null
 
 		$scope.statusChecks = {
