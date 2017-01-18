@@ -28,7 +28,7 @@ block content
 						.row
 							.col-md-12
 								.text-center
-									h1 Welcome to ShareLaTeX
+									h1 #{translate('welcome_to_sl')}
 									p
 										img(src=buildImgPath('lion-128.png'))
 
@@ -40,8 +40,7 @@ block content
 								<!-- create first admin form -->
 								.row(ng-if="shouldShowAdminForm()")
 									.col-md-12
-										h2
-											| Create the first Admin account
+										h2 #{translate('create_first_admin_account')}
 
 										// Local Auth Form
 										div(ng-if="authMethod == 'local'")
@@ -85,9 +84,9 @@ block content
 
 										// Ldap Form
 										div(ng-if="authMethod == 'ldap'")
-											h3 LDAP Admin
+											h3 #{translate('ldap')}
 											p
-												| Choose an email address for the first ShareLaTeX admin account. This should correspond to an account in the SAML system. You will then be asked to log in with this account.
+												| #{translate('ldap_create_admin_instructions')}
 
 											form(async-form="register", name="registerLdapForm", on-success="onCreateAdminSuccess"
 													on-error="onCreateAdminError"
@@ -118,9 +117,9 @@ block content
 
 										// Saml Form
 										div(ng-if="authMethod == 'saml'")
-											h3 SAML Admin
+											h3 #{translate('saml')}
 											p
-												| Choose an email address for the first ShareLaTeX admin account. This should correspond to an account in the SAML system. You will then be asked to log in with this account.
+												| #{translate('saml_create_admin_instructions')}
 
 											form(async-form="register", name="registerSamlForm", on-success="onCreateAdminSuccess"
 													on-error="onCreateAdminError"
@@ -153,15 +152,13 @@ block content
 										.row(ng-if="createAdminSuccess")
 											.col-md-12.text-center
 												.alert.alert-success
-													| Created admin user,&nbsp;
-													a(href="/login?redir=/launchpad") Log in here
-													| &nbsp;to continue
+													| !{translate('admin_user_created_message', {link: '/login?redir=/launchpad'})}
 
 										<!-- error message -->
 										.row(ng-if="createAdminError")
 											.col-md-12.text-center
 												.alert.alert-danger
-													| Something went wrong :(
+													| #{translate('generic_something_went_wrong')}
 
 										br
 
@@ -170,30 +167,30 @@ block content
 									.row
 										.col-md-12.status-indicators
 
-											h2 Status Checks
+											h2 #{translate('status_checks')}
 
 											<!-- ide js -->
 											.row.status-check
 												.col-sm-5
-													| Editor Resources
+													| #{translate('editor_resources')}
 												.col-sm-7
 													div(ng-switch="statusChecks.ideJs.status")
 
 														span(ng-switch-when="inflight")
 															i.fa.fa-fw.fa-spinner.fa-spin
-															span &nbsp;Checking
+															span &nbsp;#{translate('checking')}
 
 														span(ng-switch-when="ok")
 															i.fa.fa-check
-															span &nbsp;Ok
+															span &nbsp;#{translate('ok')}
 															a(ng-click="tryFetchIdeJs()")
-																small &nbsp;retry
+																small &nbsp;#{translate('retry')}
 
 														span(ng-switch-when="error")
 															i.fa.fa-exclamation
-															span &nbsp;Error
+															span &nbsp;#{translate('error')}
 															a(ng-click="tryFetchIdeJs()")
-																small &nbsp;retry
+																small &nbsp;#{translate('retry')}
 															div.alert.alert-danger
 																| {{ statusChecks.ideJs.error }}
 
@@ -201,25 +198,25 @@ block content
 											<!-- websocket -->
 											.row.status-check
 												.col-sm-5
-													| Websockets
+													| #{translate('websockets')}
 												.col-sm-7
 													div(ng-switch="statusChecks.websocket.status")
 
 														span(ng-switch-when="inflight")
 															i.fa.fa-fw.fa-spinner.fa-spin
-															span &nbsp;Checking
+															span &nbsp;#{translate('checking')}
 
 														span(ng-switch-when="ok")
 															i.fa.fa-check
-															span &nbsp;Ok
+															span &nbsp;#{translate('ok')}
 															a(ng-click="tryOpenWebSocket()")
-																small &nbsp;retry
+																small &nbsp;#{translate('retry')}
 
 														span(ng-switch-when="error")
 															i.fa.fa-exclamation
-															span &nbsp;Error
+															span &nbsp;#{translate('error')}
 															a(ng-click="tryOpenWebSocket()")
-																small &nbsp;retry
+																small &nbsp;#{translate('retry')}
 															div.alert.alert-danger
 																| {{ statusChecks.websocket.error }}
 
@@ -230,9 +227,9 @@ block content
 									<!-- other actions -->
 									.row
 										.col-md-12
-											h2 Other Actions
+											h2 #{translate('other_options')}
 
-											h3 Send a Test Email
+											h3 #{translate('send_test_email')}
 											form.form
 												.form-group
 													label(for="emailInput") Email
@@ -242,10 +239,10 @@ block content
 													span(ng-show="testEmail.inflight") #{translate("sending")}...
 											div(ng-if="testEmail.status == 'ok'")
 												.alert.alert-success
-													| Email Sent
+													| #{translate('email_sent')}
 											div(ng-if="testEmail.status == 'error'")
 												.alert.alert-danger
-													| Error sending email
+													| #{translate('generic_something_went_wrong')}
 
 
 
