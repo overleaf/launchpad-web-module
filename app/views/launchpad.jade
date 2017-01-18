@@ -16,6 +16,7 @@ block content
 			margin-bottom: 15px;
 		}
 		.alert { margin-top: 15px; margin-bottom: 15px; }
+		a small { cursor: pointer; color: #a93529; }
 
 
 	.content.content-alt(ng-controller="LaunchpadController")
@@ -98,7 +99,7 @@ block content
 											<!-- ide js -->
 											.row.status-check
 												.col-sm-5
-													| Editor
+													| Editor Resources
 												.col-sm-7
 													div(ng-switch="statusChecks.ideJs.status")
 
@@ -109,10 +110,14 @@ block content
 														span(ng-switch-when="ok")
 															i.fa.fa-check
 															span &nbsp;Ok
+															a(ng-click="tryFetchIdeJs()")
+																small &nbsp;retry
 
 														span(ng-switch-when="error")
 															i.fa.fa-exclamation
 															span &nbsp;Error
+															a(ng-click="tryFetchIdeJs()")
+																small &nbsp;retry
 															div.alert.alert-danger
 																| {{ statusChecks.ideJs.error }}
 
@@ -131,10 +136,14 @@ block content
 														span(ng-switch-when="ok")
 															i.fa.fa-check
 															span &nbsp;Ok
+															a(ng-click="tryOpenWebSocket()")
+																small &nbsp;retry
 
 														span(ng-switch-when="error")
 															i.fa.fa-exclamation
 															span &nbsp;Error
+															a(ng-click="tryOpenWebSocket()")
+																small &nbsp;retry
 															div.alert.alert-danger
 																| {{ statusChecks.websocket.error }}
 

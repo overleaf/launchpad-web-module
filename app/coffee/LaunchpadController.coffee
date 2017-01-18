@@ -34,7 +34,7 @@ module.exports = LaunchpadController =
 				UserGetter.getUser sessionUser._id, {isAdmin: 1}, (err, user) ->
 					if err?
 						return next(err)
-					if user.isAdmin
+					if user && user.isAdmin
 						res.render Path.resolve(__dirname, "../views/launchpad"), {adminUserExists: adminExists}
 					else
 						AuthenticationController._redirectToLoginPage(req, res)
@@ -52,12 +52,12 @@ module.exports = LaunchpadController =
 			logger.log {}, "no email address supplied"
 			return res.sendStatus(400)
 		logger.log {email}, "sending test email"
-		emailOptions =
-			to: email
+		emailOptions = {to: email}
 		EmailHandler.sendEmail "testEmail", emailOptions, (err) ->
 			if err?
 				logger.err {email}, "error sending test email"
 				return next(err)
+			logger.log {email}, "sent test email"
 			res.sendStatus(201)
 
 	registerAdmin: (req, res, next) ->

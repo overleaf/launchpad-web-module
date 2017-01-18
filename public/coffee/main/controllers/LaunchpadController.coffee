@@ -34,7 +34,6 @@ define [
 		$scope.sendTestEmail = () ->
 			$scope.testEmail.inflight = true
 			$scope.testEmail.status = null
-			console.log ">> sending test email"
 			$http
 				.post('/launchpad/send_test_email', {
 					email: $scope.testEmail.emailAddress,
@@ -43,51 +42,54 @@ define [
 				.success (data, status, headers) ->
 					$scope.testEmail.inflight = false
 					if status >= 200 && status < 300
-						console.log ">> sent email"
 						$scope.testEmail.status = 'ok'
 				.error (data, status, headers) ->
 					$scope.testEmail.inflight = false
-					console.log ">> email error"
 					$scope.testEmail.status = 'error'
 
 		$scope.tryFetchIdeJs = () ->
 			$scope.statusChecks.ideJs.status = 'inflight'
-			$http
-				.get($scope.ideJsPath)
-				.success (data, status, headers) ->
-					if status >= 200 && status < 300
-						$scope.statusChecks.ideJs.status = 'ok'
-				.error (data, status, headers) ->
-						$scope.statusChecks.ideJs.status = 'error'
-						$scope.statusChecks.ideJs.error = new Error('Http status: ' + status)
+			$timeout(
+				() ->
+					$http
+						.get($scope.ideJsPath)
+						.success (data, status, headers) ->
+							if status >= 200 && status < 300
+								$scope.statusChecks.ideJs.status = 'ok'
+						.error (data, status, headers) ->
+								$scope.statusChecks.ideJs.status = 'error'
+								$scope.statusChecks.ideJs.error = new Error('Http status: ' + status)
+				, 1000
+			)
 
 		$scope.tryOpenWebSocket = () ->
 			$scope.statusChecks.websocket.status = 'inflight'
-			if !io?
-				$scope.statusChecks.websocket.status = 'error'
-				$scope.statusChecks.websocket.error = 'socket.io not loaded'
-				return
-			socket = io.connect null,
-				reconnect: false
-				'connect timeout': 30 * 1000
-				"force new connection": true
+			$timeout(
+				() ->
+					if !io?
+						$scope.statusChecks.websocket.status = 'error'
+						$scope.statusChecks.websocket.error = 'socket.io not loaded'
+						return
+					socket = io.connect null,
+						reconnect: false
+						'connect timeout': 30 * 1000
+						"force new connection": true
 
-			socket.on 'connectionAccepted', () ->
-				$scope.statusChecks.websocket.status = 'ok'
-				$scope.$apply () ->
-				console.log ">> accepted"
+					socket.on 'connectionAccepted', () ->
+						$scope.statusChecks.websocket.status = 'ok'
+						$scope.$apply () ->
 
-			socket.on 'connectionRejected', (err) ->
-				$scope.statusChecks.websocket.status = 'error'
-				$scope.statusChecks.websocket.error = err
-				$scope.$apply () ->
-				console.log ">> rejected"
+					socket.on 'connectionRejected', (err) ->
+						$scope.statusChecks.websocket.status = 'error'
+						$scope.statusChecks.websocket.error = err
+						$scope.$apply () ->
 
-			socket.on 'connect_failed', (err) ->
-				$scope.statusChecks.websocket.status = 'error'
-				$scope.statusChecks.websocket.error = err
-				$scope.$apply () ->
-				console.log ">> failed"
+					socket.on 'connect_failed', (err) ->
+						$scope.statusChecks.websocket.status = 'error'
+						$scope.statusChecks.websocket.error = err
+						$scope.$apply () ->
+				, 1000
+			)
 
 		$scope.tryHealthCheck = () ->
 			$scope.statusChecks.healthCheck.status = 'inflight'
@@ -97,9 +99,6 @@ define [
 					if status >= 200 && status < 300
 						$scope.statusChecks.healthCheck.status = 'ok'
 				.error (data, status, headers) ->
-					console.log ">> failed"
-					console.log data
-					console.log status
 					$scope.statusChecks.healthCheck.status = 'error'
 					$scope.statusChecks.healthCheck.error = new Error('Http status: ' + status)
 
@@ -107,18 +106,13 @@ define [
 			$timeout(
 				() ->
 					$scope.tryFetchIdeJs()
-				, 4000
+				, 1000
 			)
 			$timeout(
 				() ->
 					$scope.tryOpenWebSocket()
-				, 8000
+				, 2000
 			)
-			# $timeout(
-			# 	() ->
-			# 		$scope.tryHealthCheck()
-			# 	, 12000
-			# )
 
 		# kick off the status checks on load
 		if $scope.adminUserExists
