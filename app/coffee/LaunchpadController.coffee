@@ -1,3 +1,4 @@
+Settings = require 'settings-sharelatex'
 Path = require "path"
 Url = require "url"
 logger = require "logger-sharelatex"
@@ -18,16 +19,26 @@ AuthenticationController = require("../../../../app/js/Features/Authentication/A
 
 module.exports = LaunchpadController =
 
+	_getAuthMethod: () ->
+		return 'ldap'  # DEBUG
+		if Settings.ldap
+			'ldap'
+		else if Settings.saml
+			'saml'
+		else
+			'local'
+
 	launchpad: (req, res, next) ->
 		# TODO: check if we're using external auth?
 		#   * how does all this work with ldap and saml?
 		sessionUser = AuthenticationController.getSessionUser(req)
-		LaunchpadController._atLeastOneAdminExists (err, adminExists) ->
+		authMethod = LaunchpadController._getAuthMethod()
+		LaunchpadController._atLeastOneAdminExists (err, adminUserExists) ->
 			if err?
 				return next(err)
 			if !sessionUser
-				if !adminExists
-					res.render Path.resolve(__dirname, "../views/launchpad"), {adminUserExists: adminExists}
+				if !adminUserExists
+					res.render Path.resolve(__dirname, "../views/launchpad"), {adminUserExists, authMethod}
 				else
 					AuthenticationController._redirectToLoginPage(req, res)
 			else
@@ -35,9 +46,9 @@ module.exports = LaunchpadController =
 					if err?
 						return next(err)
 					if user && user.isAdmin
-						res.render Path.resolve(__dirname, "../views/launchpad"), {adminUserExists: adminExists}
+						res.render Path.resolve(__dirname, "../views/launchpad"), {adminUserExists, authMethod}
 					else
-						AuthenticationController._redirectToLoginPage(req, res)
+						res.redirect '/restricted'
 
 	_atLeastOneAdminExists: (callback=(err, exists)->) ->
 		UserGetter.getUser {isAdmin: true}, {_id: 1, isAdmin: 1}, (err, user) ->
@@ -46,7 +57,6 @@ module.exports = LaunchpadController =
 			return callback(null, user?)
 
 	sendTestEmail: (req, res, next) ->
-		# TODO: require admin login
 		email = req.body.email
 		if !email
 			logger.log {}, "no email address supplied"
@@ -59,6 +69,18 @@ module.exports = LaunchpadController =
 				return next(err)
 			logger.log {email}, "sent test email"
 			res.sendStatus(201)
+
+	registerLdapAdmin: (req, res, next) ->
+		if LaunchpadController._getAuthMethod() != 'ldap'
+			logger.log {}, "trying to register ldap admin but ldap is not enabled, disallow"
+			return res.sendStatus(403)
+		res.sendStatus(201)
+
+	registerSamlAdmin: (req, res, next) ->
+		if LaunchpadController._getAuthMethod() != 'saml'
+			logger.log {}, "trying to register saml admin but saml is not enabled, disallow"
+			return res.sendStatus(403)
+		res.sendStatus(201)
 
 	registerAdmin: (req, res, next) ->
 		logger.log email: req.body.email, "attempted register first admin user"
@@ -93,14 +115,6 @@ module.exports = LaunchpadController =
 						if err?
 							logger.err {user_id: user._id, err}, "error setting user to admin"
 							return next(err)
-
-						# req.login user, (err) ->
-						# 	return callback(error) if error?
-						# 	req.session.justRegistered = true
-						# 	# copy to the old `session.user` location, for backward-comptability
-						# 	req.session.user = req.session.passport.user
-						# 	AuthenticationController._clearRedirectFromSession(req)
-						# 	UserSessionsManager.trackSession(user, req.sessionID, () ->)
 
 						res.json
 							redir: ''

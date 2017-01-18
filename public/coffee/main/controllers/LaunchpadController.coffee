@@ -6,6 +6,8 @@ define [
 
 		$scope.adminUserExists = window.data.adminUserExists
 		$scope.ideJsPath = window.data.ideJsPath
+		$scope.authMethod = window.data.authMethod
+
 		$scope.createAdminSuccess = null
 
 		$scope.statusChecks = {
