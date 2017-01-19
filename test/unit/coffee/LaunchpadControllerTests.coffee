@@ -140,3 +140,44 @@ describe 'LaunchpadController', ->
 					expect(exists).to.equal undefined
 					done()
 
+
+	describe 'sendTestEmail', ->
+
+		beforeEach ->
+			@EmailHandler.sendEmail = sinon.stub().callsArgWith(2, null)
+			@req.body.email = 'someone@example.com'
+			@res.sendStatus = sinon.stub()
+			@next = sinon.stub()
+
+		it 'should produce a 201 response', ->
+			@LaunchpadController.sendTestEmail @req, @res, @next
+			@res.sendStatus.callCount.should.equal 1
+			@res.sendStatus.calledWith(201).should.equal true
+
+		it 'should not call next with an error', ->
+			@LaunchpadController.sendTestEmail @req, @res, @next
+			@next.callCount.should.equal 0
+
+		it 'should have called sendEmail', ->
+			@LaunchpadController.sendTestEmail @req, @res, @next
+			@EmailHandler.sendEmail.callCount.should.equal 1
+			@EmailHandler.sendEmail.calledWith('testEmail').should.equal true
+
+		describe 'when sendEmail produces an error', ->
+			beforeEach ->
+				@EmailHandler.sendEmail = sinon.stub().callsArgWith(2, new Error('woops'))
+
+			it 'should call next with an error', ->
+				@LaunchpadController.sendTestEmail @req, @res, @next
+				@next.callCount.should.equal 1
+				expect( @next.lastCall.args[0] ).to.be.instanceof Error
+
+		describe 'when no email address is supplied', ->
+			beforeEach ->
+				@req.body.email = undefined
+
+			it 'should produce a 400 response', ->
+				@LaunchpadController.sendTestEmail @req, @res, @next
+				@res.sendStatus.callCount.should.equal 1
+				@res.sendStatus.calledWith(400).should.equal true
+
