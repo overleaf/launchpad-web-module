@@ -109,4 +109,34 @@ describe 'LaunchpadController', ->
 
 	describe '_atLeastOneAdminExists', ->
 
-		beforeEach ->
+		describe 'when there are no admins', ->
+			beforeEach ->
+				@UserGetter.getUser = sinon.stub().callsArgWith(2, null, null)
+
+			it 'should callback with false', (done) ->
+				@LaunchpadController._atLeastOneAdminExists (err, exists) =>
+					expect(err).to.equal null
+					expect(exists).to.equal false
+					done()
+
+		describe 'when there are some admins', ->
+			beforeEach ->
+				@UserGetter.getUser = sinon.stub().callsArgWith(2, null, {_id: 'abcd'})
+
+			it 'should callback with true', (done) ->
+				@LaunchpadController._atLeastOneAdminExists (err, exists) =>
+					expect(err).to.equal null
+					expect(exists).to.equal true
+					done()
+
+		describe 'when getUser produces an error', ->
+			beforeEach ->
+				@UserGetter.getUser = sinon.stub().callsArgWith(2, new Error('woops'))
+
+			it 'should produce an error', (done) ->
+				@LaunchpadController._atLeastOneAdminExists (err, exists) =>
+					expect(err).to.not.equal null
+					expect(err).to.be.instanceof Error
+					expect(exists).to.equal undefined
+					done()
+
