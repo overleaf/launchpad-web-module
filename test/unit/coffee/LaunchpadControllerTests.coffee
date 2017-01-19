@@ -77,11 +77,36 @@ describe 'LaunchpadController', ->
 				it 'should not render the launchpad page', ->
 					@res.render.callCount.should.equal 0
 
-
 		describe 'when the user is logged in', ->
-
+			beforeEach ->
+				@user =
+					_id: 'abcd'
+					email: 'abcd@example.com'
+				@AuthenticationController.getSessionUser = sinon.stub().returns @user
+				@_atLeastOneAdminExists.callsArgWith(0, null, true)
+				@res.render = sinon.stub()
+				@res.redirect = sinon.stub()
 
 			describe 'when the user is an admin', ->
+				beforeEach ->
+					@UserGetter.getUser = sinon.stub().callsArgWith(2, null, {isAdmin: true})
+					@LaunchpadController.launchpadPage(@req, @res, @next)
 
+				it 'should render the launchpad page', ->
+					viewPath = require('path').join __dirname, "../../../app/views/launchpad"
+					@res.render.callCount.should.equal 1
+					@res.render.calledWith(viewPath, {adminUserExists: true, authMethod: 'local'}).should.equal true
 
 			describe 'when the user is not an admin', ->
+				beforeEach ->
+					@UserGetter.getUser = sinon.stub().callsArgWith(2, null, {isAdmin: false})
+					@LaunchpadController.launchpadPage(@req, @res, @next)
+
+				it 'should redirect to restricted page', ->
+					@res.redirect.callCount.should.equal 1
+					@res.redirect.calledWith('/restricted').should.equal true
+
+
+	describe '_atLeastOneAdminExists', ->
+
+		beforeEach ->
