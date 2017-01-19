@@ -107,8 +107,9 @@ module.exports = LaunchpadController =
 
 	registerAdmin: (req, res, next) ->
 		email = req.body.email
-		if !email
-			logger.log {}, "no email supplied, disallow"
+		password = req.body.password
+		if !email || !password
+			logger.log {}, "must supply both email and password, disallow"
 			return res.sendStatus(400)
 
 		logger.log {email}, "attempted register first admin user"
@@ -120,33 +121,22 @@ module.exports = LaunchpadController =
 				logger.log {email: req.body.email}, "already have at least one admin user, disallow"
 				return res.sendStatus(403)
 
-			UserRegistrationHandler.registerNewUser req.body, (err, user)->
-				redir = verifyLink or AuthenticationController._getRedirectFromSession(req) or "/project"
-				if err? and err?.message == "EmailAlreadyRegistered"
-					# TODO: this is an error, return error thing
-					return res.sendStatus(400)
-				else if err?
-					next(err)
-				else
-					metrics.inc "user.register.success"
+			body = {email, password}
+			UserRegistrationHandler.registerNewUser body, (err, user)->
+				if err?
+					return next(err)
 
-					EmailHandler.sendEmail "welcome", {
-						first_name:user.first_name
-						to: user.email
-					}, () ->
+				logger.log {user_id: user._id}, "making user an admin"
+				User.update {_id: user._id}, {$set: {isAdmin: true}}, (err) ->
+					if err?
+						logger.err {user_id: user._id, err}, "error setting user to admin"
+						return next(err)
 
-					logger.log {user_id: user._id}, "making user an admin"
-
-					User.update {_id: user._id}, {$set: {isAdmin: true}}, (err) ->
-						if err?
-							logger.err {user_id: user._id, err}, "error setting user to admin"
-							return next(err)
-
-						logger.log {email, user_id: user._id}, "created first admin account"
-						res.json
-							redir: ''
-							id: user._id.toString()
-							first_name: user.first_name
-							last_name: user.last_name
-							email: user.email
-							created: Date.now()
+					logger.log {email, user_id: user._id}, "created first admin account"
+					res.json
+						redir: ''
+						id: user._id.toString()
+						first_name: user.first_name
+						last_name: user.last_name
+						email: user.email
+						created: Date.now()
