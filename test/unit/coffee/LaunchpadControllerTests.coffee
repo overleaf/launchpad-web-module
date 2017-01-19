@@ -378,8 +378,6 @@ describe 'LaunchpadController', ->
 				@UserRegistrationHandler.registerNewUser.callCount.should.equal 1
 				@UserRegistrationHandler.registerNewUser.calledWith({email: @email, password: @password}).should.equal true
 
-	# # # # # # # # # #
-
 	describe 'registerExternalAuthAdmin', ->
 		beforeEach ->
 			@Settings.ldap = {one: 1}
