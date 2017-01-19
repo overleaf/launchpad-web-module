@@ -105,12 +105,6 @@ module.exports = LaunchpadController =
 
 						return res.json {redir: '/launchpad'}
 
-	registerSamlAdmin: (req, res, next) ->
-		if LaunchpadController._getAuthMethod() != 'saml'
-			logger.log {}, "trying to register saml admin but saml is not enabled, disallow"
-			return res.sendStatus(403)
-		res.sendStatus(201)
-
 	registerAdmin: (req, res, next) ->
 		email = req.body.email
 		if !email
