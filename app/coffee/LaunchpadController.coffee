@@ -103,7 +103,7 @@ module.exports = LaunchpadController =
 						AuthenticationController._setRedirectInSession(req, '/launchpad')
 						logger.log {email, user_id: user._id, authMethod}, "created first admin account"
 
-						return res.json {redir: '/launchpad'}
+						return res.json {redir: '/launchpad', email: email}
 
 	registerAdmin: (req, res, next) ->
 		email = req.body.email

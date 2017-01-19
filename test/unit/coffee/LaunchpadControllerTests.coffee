@@ -377,3 +377,205 @@ describe 'LaunchpadController', ->
 			it 'should have called registerNewUser', ->
 				@UserRegistrationHandler.registerNewUser.callCount.should.equal 1
 				@UserRegistrationHandler.registerNewUser.calledWith({email: @email, password: @password}).should.equal true
+
+	# # # # # # # # # #
+
+	describe 'registerExternalAuthAdmin', ->
+		beforeEach ->
+			@Settings.ldap = {one: 1}
+			@_atLeastOneAdminExists = sinon.stub(@LaunchpadController, '_atLeastOneAdminExists')
+
+		afterEach ->
+			@_atLeastOneAdminExists.restore()
+
+		describe 'when all goes well', ->
+			beforeEach ->
+				@_atLeastOneAdminExists.callsArgWith(0, null, false)
+				@email = 'someone@example.com'
+				@req.body.email = @email
+				@user =
+					_id: 'abcdef'
+					email: @email
+				@UserRegistrationHandler.registerNewUser = sinon.stub().callsArgWith(1, null, @user)
+				@User.update = sinon.stub().callsArgWith(2, null)
+				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@res.json = sinon.stub()
+				@next = sinon.stub()
+				@LaunchpadController.registerExternalAuthAdmin('ldap')(@req, @res, @next)
+
+			it 'should send back a json response', ->
+				@res.json.callCount.should.equal 1
+				expect(@res.json.lastCall.args[0].email).to.equal @email
+
+			it 'should have checked for existing admins', ->
+				@_atLeastOneAdminExists.callCount.should.equal 1
+
+			it 'should have called registerNewUser', ->
+				@UserRegistrationHandler.registerNewUser.callCount.should.equal 1
+				@UserRegistrationHandler.registerNewUser.calledWith({
+					email: @email, password: 'password_here', first_name: @email, last_name: ''
+				}).should.equal true
+
+			it 'should have updated the user to make them an admin', ->
+				@User.update.callCount.should.equal 1
+				@User.update.calledWith({_id: @user._id}, {$set: {isAdmin: true}}).should.equal true
+
+			it 'should have set a redirect in session', ->
+				@AuthenticationController._setRedirectInSession.callCount.should.equal 1
+				@AuthenticationController._setRedirectInSession.calledWith(@req, '/launchpad').should.equal true
+
+		describe 'when the authMethod is invalid', ->
+			beforeEach ->
+				@_atLeastOneAdminExists.callsArgWith(0, null, false)
+				@email = undefined
+				@req.body.email = @email
+				@user =
+					_id: 'abcdef'
+					email: @email
+				@UserRegistrationHandler.registerNewUser = sinon.stub()
+				@User.update = sinon.stub()
+				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@res.sendStatus = sinon.stub()
+				@next = sinon.stub()
+				@LaunchpadController.registerExternalAuthAdmin('NOTAVALIDAUTHMETHOD')(@req, @res, @next)
+
+			it 'should send a 403 response', ->
+				@res.sendStatus.callCount.should.equal 1
+				@res.sendStatus.calledWith(403).should.equal true
+
+			it 'should not check for existing admins', ->
+				@_atLeastOneAdminExists.callCount.should.equal 0
+
+			it 'should not call registerNewUser', ->
+				@UserRegistrationHandler.registerNewUser.callCount.should.equal 0
+
+		describe 'when no email is supplied', ->
+			beforeEach ->
+				@_atLeastOneAdminExists.callsArgWith(0, null, false)
+				@email = undefined
+				@req.body.email = @email
+				@user =
+					_id: 'abcdef'
+					email: @email
+				@UserRegistrationHandler.registerNewUser = sinon.stub()
+				@User.update = sinon.stub()
+				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@res.sendStatus = sinon.stub()
+				@next = sinon.stub()
+				@LaunchpadController.registerExternalAuthAdmin('ldap')(@req, @res, @next)
+
+			it 'should send a 400 response', ->
+				@res.sendStatus.callCount.should.equal 1
+				@res.sendStatus.calledWith(400).should.equal true
+
+			it 'should not check for existing admins', ->
+				@_atLeastOneAdminExists.callCount.should.equal 0
+
+			it 'should not call registerNewUser', ->
+				@UserRegistrationHandler.registerNewUser.callCount.should.equal 0
+
+		describe 'when there are already existing admins', ->
+			beforeEach ->
+				@_atLeastOneAdminExists.callsArgWith(0, null, true)
+				@email = 'someone@example.com'
+				@req.body.email = @email
+				@user =
+					_id: 'abcdef'
+					email: @email
+				@UserRegistrationHandler.registerNewUser = sinon.stub()
+				@User.update = sinon.stub()
+				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@res.sendStatus = sinon.stub()
+				@next = sinon.stub()
+				@LaunchpadController.registerExternalAuthAdmin('ldap')(@req, @res, @next)
+
+			it 'should send a 403 response', ->
+				@res.sendStatus.callCount.should.equal 1
+				@res.sendStatus.calledWith(403).should.equal true
+
+			it 'should not call registerNewUser', ->
+				@UserRegistrationHandler.registerNewUser.callCount.should.equal 0
+
+		describe 'when checking admins produces an error', ->
+			beforeEach ->
+				@_atLeastOneAdminExists.callsArgWith(0, new Error('woops'))
+				@email = 'someone@example.com'
+				@req.body.email = @email
+				@user =
+					_id: 'abcdef'
+					email: @email
+				@UserRegistrationHandler.registerNewUser = sinon.stub()
+				@User.update = sinon.stub()
+				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@res.sendStatus = sinon.stub()
+				@next = sinon.stub()
+				@LaunchpadController.registerExternalAuthAdmin('ldap')(@req, @res, @next)
+
+			it 'should call next with an error', ->
+				@next.callCount.should.equal 1
+				expect(@next.lastCall.args[0]).to.be.instanceof Error
+
+			it 'should have checked for existing admins', ->
+				@_atLeastOneAdminExists.callCount.should.equal 1
+
+			it 'should not call registerNewUser', ->
+				@UserRegistrationHandler.registerNewUser.callCount.should.equal 0
+
+		describe 'when registerNewUser produces an error', ->
+			beforeEach ->
+				@_atLeastOneAdminExists.callsArgWith(0, null, false)
+				@email = 'someone@example.com'
+				@req.body.email = @email
+				@user =
+					_id: 'abcdef'
+					email: @email
+				@UserRegistrationHandler.registerNewUser = sinon.stub().callsArgWith(1, new Error('woops'))
+				@User.update = sinon.stub()
+				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@res.json = sinon.stub()
+				@next = sinon.stub()
+				@LaunchpadController.registerExternalAuthAdmin('ldap')(@req, @res, @next)
+
+			it 'should call next with an error', ->
+				@next.callCount.should.equal 1
+				expect(@next.lastCall.args[0]).to.be.instanceof Error
+
+			it 'should have checked for existing admins', ->
+				@_atLeastOneAdminExists.callCount.should.equal 1
+
+			it 'should have called registerNewUser', ->
+				@UserRegistrationHandler.registerNewUser.callCount.should.equal 1
+				@UserRegistrationHandler.registerNewUser.calledWith({
+					email: @email, password: 'password_here', first_name: @email, last_name: ''
+				}).should.equal true
+
+			it 'should not call update', ->
+				@User.update.callCount.should.equal 0
+
+		describe 'when user update produces an error', ->
+			beforeEach ->
+				@_atLeastOneAdminExists.callsArgWith(0, null, false)
+				@email = 'someone@example.com'
+				@req.body.email = @email
+				@user =
+					_id: 'abcdef'
+					email: @email
+				@UserRegistrationHandler.registerNewUser = sinon.stub().callsArgWith(1, null, @user)
+				@User.update = sinon.stub().callsArgWith(2, new Error('woops'))
+				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@res.json = sinon.stub()
+				@next = sinon.stub()
+				@LaunchpadController.registerExternalAuthAdmin('ldap')(@req, @res, @next)
+
+			it 'should call next with an error', ->
+				@next.callCount.should.equal 1
+				expect(@next.lastCall.args[0]).to.be.instanceof Error
+
+			it 'should have checked for existing admins', ->
+				@_atLeastOneAdminExists.callCount.should.equal 1
+
+			it 'should have called registerNewUser', ->
+				@UserRegistrationHandler.registerNewUser.callCount.should.equal 1
+				@UserRegistrationHandler.registerNewUser.calledWith({
+					email: @email, password: 'password_here', first_name: @email, last_name: ''
+				}).should.equal true
