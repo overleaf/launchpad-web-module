@@ -5,7 +5,7 @@ AuthorizationMiddlewear = require('../../../../app/js/Features/Authorization/Aut
 module.exports =
 	apply: (webRouter, apiRouter) ->
 
-		webRouter.get "/launchpad", LaunchpadController.launchpad
+		webRouter.get "/launchpad", LaunchpadController.launchpadPage
 		webRouter.post "/launchpad/register_admin", LaunchpadController.registerAdmin
 		webRouter.post "/launchpad/register_ldap_admin", LaunchpadController.registerExternalAuthAdmin('ldap')
 		webRouter.post "/launchpad/register_saml_admin", LaunchpadController.registerExternalAuthAdmin('saml')
