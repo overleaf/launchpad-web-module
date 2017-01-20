@@ -1,9 +1,12 @@
+logger = require 'logger-sharelatex'
 LaunchpadController = require './LaunchpadController'
 AuthenticationController = require("../../../../app/js/Features/Authentication/AuthenticationController")
 AuthorizationMiddlewear = require('../../../../app/js/Features/Authorization/AuthorizationMiddlewear')
 
 module.exports =
 	apply: (webRouter, apiRouter) ->
+
+		logger.log {}, "Init launchpad router"
 
 		webRouter.get "/launchpad", LaunchpadController.launchpadPage
 		webRouter.post "/launchpad/register_admin", LaunchpadController.registerAdmin
