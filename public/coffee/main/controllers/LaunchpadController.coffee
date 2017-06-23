@@ -26,11 +26,12 @@ define [
 		$scope.shouldShowAdminForm = () ->
 			!$scope.adminUserExists
 
-		$scope.onCreateAdminSuccess = (data, status) ->
+		$scope.onCreateAdminSuccess = (response) ->
+			{ status } = response
 			if status >= 200 && status < 300
 				$scope.createAdminSuccess = true
 
-		$scope.onCreateAdminError = (data, status) ->
+		$scope.onCreateAdminError = () ->
 			$scope.createAdminError = true
 
 		$scope.sendTestEmail = () ->
