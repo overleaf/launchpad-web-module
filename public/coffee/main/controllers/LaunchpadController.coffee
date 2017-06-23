@@ -60,7 +60,7 @@ define [
 							{ status } = response
 							if status >= 200 && status < 300
 								$scope.statusChecks.ideJs.status = 'ok'
-						.error (response) ->
+						.catch (response) ->
 							{ status } = response
 							$scope.statusChecks.ideJs.status = 'error'
 							$scope.statusChecks.ideJs.error = new Error('Http status: ' + status)
