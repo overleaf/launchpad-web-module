@@ -26,11 +26,12 @@ define [
 		$scope.shouldShowAdminForm = () ->
 			!$scope.adminUserExists
 
-		$scope.onCreateAdminSuccess = (data, status) ->
+		$scope.onCreateAdminSuccess = (response) ->
+			{ status } = response
 			if status >= 200 && status < 300
 				$scope.createAdminSuccess = true
 
-		$scope.onCreateAdminError = (data, status) ->
+		$scope.onCreateAdminError = () ->
 			$scope.createAdminError = true
 
 		$scope.sendTestEmail = () ->
@@ -41,11 +42,12 @@ define [
 					email: $scope.testEmail.emailAddress,
 					_csrf: window.csrfToken
 				})
-				.success (data, status, headers) ->
+				.then (response) ->
+					{ status } = response
 					$scope.testEmail.inflight = false
 					if status >= 200 && status < 300
 						$scope.testEmail.status = 'ok'
-				.error (data, status, headers) ->
+				.catch () ->
 					$scope.testEmail.inflight = false
 					$scope.testEmail.status = 'error'
 
@@ -55,12 +57,14 @@ define [
 				() ->
 					$http
 						.get($scope.ideJsPath)
-						.success (data, status, headers) ->
+						.then (response) ->
+							{ status } = response
 							if status >= 200 && status < 300
 								$scope.statusChecks.ideJs.status = 'ok'
-						.error (data, status, headers) ->
-								$scope.statusChecks.ideJs.status = 'error'
-								$scope.statusChecks.ideJs.error = new Error('Http status: ' + status)
+						.catch (response) ->
+							{ status } = response
+							$scope.statusChecks.ideJs.status = 'error'
+							$scope.statusChecks.ideJs.error = new Error('Http status: ' + status)
 				, 1000
 			)
 
@@ -97,10 +101,12 @@ define [
 			$scope.statusChecks.healthCheck.status = 'inflight'
 			$http
 				.get('/health_check')
-				.success (data, status, headers) ->
+				.then (response) ->
+					{ status } = response
 					if status >= 200 && status < 300
 						$scope.statusChecks.healthCheck.status = 'ok'
-				.error (data, status, headers) ->
+				.catch (response) ->
+					{ status } = response
 					$scope.statusChecks.healthCheck.status = 'error'
 					$scope.statusChecks.healthCheck.error = new Error('Http status: ' + status)
 
