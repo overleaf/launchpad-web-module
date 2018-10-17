@@ -127,17 +127,31 @@ module.exports = LaunchpadController =
 					return next(err)
 
 				logger.log {user_id: user._id}, "making user an admin"
-				User.update {_id: user._id}, {$set: {isAdmin: true}}, (err) ->
-					if err?
-						logger.err {user_id: user._id, err}, "error setting user to admin"
-						return next(err)
+				proceed = () ->
+					User.update {_id: user._id}, {$set: {isAdmin: true}}, (err) ->
+						if err?
+							logger.err {user_id: user._id, err}, "error setting user to admin"
+							return next(err)
 
-					AuthenticationController._setRedirectInSession(req, '/launchpad')
-					logger.log {email, user_id: user._id}, "created first admin account"
-					res.json
-						redir: ''
-						id: user._id.toString()
-						first_name: user.first_name
-						last_name: user.last_name
-						email: user.email
-						created: Date.now()
+						AuthenticationController._setRedirectInSession(req, '/launchpad')
+						logger.log {email, user_id: user._id}, "created first admin account"
+						res.json
+							redir: ''
+							id: user._id.toString()
+							first_name: user.first_name
+							last_name: user.last_name
+							email: user.email
+							created: Date.now()
+
+				if Settings.overleaf? and Settings.createV1AccountOnLogin?
+					logger.log {user_id: user._id}, "Creating backing account in v1 for new admin user"
+					SharelatexAuthController = require(
+						'../../../overleaf-integration/app/js/SharelatexAuth/SharelatexAuthController'
+					)
+					UserGetter.getUser user._id, (err, user) ->
+						return next(err) if err?
+						SharelatexAuthController._createBackingAccountIfNeeded user, req, (err) ->
+							return next(err) if err?
+							proceed()
+				else
+					proceed()

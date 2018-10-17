@@ -28,6 +28,8 @@ describe 'LaunchpadController', ->
 			"../../../../app/js/Features/User/UserGetter": @UserGetter = {}
 			"../../../../app/js/models/User": {User: @User}
 			"../../../../app/js/Features/Authentication/AuthenticationController": @AuthenticationController = {}
+			"../../../overleaf-integration/app/js/SharelatexAuth/SharelatexAuthController":
+				@SharelatexAuthController = {}
 
 		@email = "bob@smith.com"
 
@@ -389,6 +391,49 @@ describe 'LaunchpadController', ->
 			it 'should have called registerNewUser', ->
 				@UserRegistrationHandler.registerNewUser.callCount.should.equal 1
 				@UserRegistrationHandler.registerNewUser.calledWith({email: @email, password: @password}).should.equal true
+
+		describe 'when overleaf', ->
+			beforeEach ->
+				@Settings.overleaf = {one: 1}
+				@Settings.createV1AccountOnLogin = true
+				@_atLeastOneAdminExists.callsArgWith(0, null, false)
+				@email = 'someone@example.com'
+				@password = 'a_really_bad_password'
+				@req.body.email = @email
+				@req.body.password = @password
+				@user =
+					_id: 'abcdef'
+					email: @email
+				@UserRegistrationHandler.registerNewUser = sinon.stub().callsArgWith(1, null, @user)
+				@User.update = sinon.stub().callsArgWith(2, null)
+				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@SharelatexAuthController._createBackingAccountIfNeeded = sinon.stub().callsArgWith(2, null)
+				@UserGetter.getUser = sinon.stub().callsArgWith(1, null, {_id: '1234'})
+				@res.json = sinon.stub()
+				@next = sinon.stub()
+				@LaunchpadController.registerAdmin(@req, @res, @next)
+
+			it 'should send back a json response', ->
+				@res.json.callCount.should.equal 1
+				expect(@res.json.lastCall.args[0].email).to.equal @email
+
+			it 'should have checked for existing admins', ->
+				@_atLeastOneAdminExists.callCount.should.equal 1
+
+			it 'should have called registerNewUser', ->
+				@UserRegistrationHandler.registerNewUser.callCount.should.equal 1
+				@UserRegistrationHandler.registerNewUser.calledWith({email: @email, password: @password}).should.equal true
+
+			it 'should have created a backing account for the user', ->
+				@SharelatexAuthController._createBackingAccountIfNeeded.callCount.should.equal 1
+
+			it 'should have updated the user to make them an admin', ->
+				@User.update.calledWith({_id: @user._id}, {$set: {isAdmin: true}}).should.equal true
+
+			it 'should have set a redirect in session', ->
+				@AuthenticationController._setRedirectInSession.callCount.should.equal 1
+				@AuthenticationController._setRedirectInSession.calledWith(@req, '/launchpad').should.equal true
+
 
 	describe 'registerExternalAuthAdmin', ->
 		beforeEach ->
