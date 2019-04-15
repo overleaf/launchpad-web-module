@@ -100,7 +100,7 @@ module.exports = LaunchpadController =
 							logger.err {user_id: user._id, err}, "error setting user to admin"
 							return next(err)
 
-						AuthenticationController._setRedirectInSession(req, '/launchpad')
+						AuthenticationController.setRedirectInSession(req, '/launchpad')
 						logger.log {email, user_id: user._id, authMethod}, "created first admin account"
 
 						return res.json {redir: '/launchpad', email: email}
@@ -133,7 +133,7 @@ module.exports = LaunchpadController =
 							logger.err {user_id: user._id, err}, "error setting user to admin"
 							return next(err)
 
-						AuthenticationController._setRedirectInSession(req, '/launchpad')
+						AuthenticationController.setRedirectInSession(req, '/launchpad')
 						logger.log {email, user_id: user._id}, "created first admin account"
 						res.json
 							redir: ''
