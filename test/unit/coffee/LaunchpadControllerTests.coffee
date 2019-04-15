@@ -203,7 +203,7 @@ describe 'LaunchpadController', ->
 					email: @email
 				@UserRegistrationHandler.registerNewUser = sinon.stub().callsArgWith(1, null, @user)
 				@User.update = sinon.stub().callsArgWith(2, null)
-				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@AuthenticationController.setRedirectInSession = sinon.stub()
 				@res.json = sinon.stub()
 				@next = sinon.stub()
 				@LaunchpadController.registerAdmin(@req, @res, @next)
@@ -224,8 +224,8 @@ describe 'LaunchpadController', ->
 				@User.update.calledWith({_id: @user._id}, {$set: {isAdmin: true}}).should.equal true
 
 			it 'should have set a redirect in session', ->
-				@AuthenticationController._setRedirectInSession.callCount.should.equal 1
-				@AuthenticationController._setRedirectInSession.calledWith(@req, '/launchpad').should.equal true
+				@AuthenticationController.setRedirectInSession.callCount.should.equal 1
+				@AuthenticationController.setRedirectInSession.calledWith(@req, '/launchpad').should.equal true
 
 
 		describe 'when no email is supplied', ->
@@ -240,7 +240,7 @@ describe 'LaunchpadController', ->
 					email: @email
 				@UserRegistrationHandler.registerNewUser = sinon.stub()
 				@User.update = sinon.stub()
-				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@AuthenticationController.setRedirectInSession = sinon.stub()
 				@res.sendStatus = sinon.stub()
 				@next = sinon.stub()
 				@LaunchpadController.registerAdmin(@req, @res, @next)
@@ -267,7 +267,7 @@ describe 'LaunchpadController', ->
 					email: @email
 				@UserRegistrationHandler.registerNewUser = sinon.stub()
 				@User.update = sinon.stub()
-				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@AuthenticationController.setRedirectInSession = sinon.stub()
 				@res.sendStatus = sinon.stub()
 				@next = sinon.stub()
 				@LaunchpadController.registerAdmin(@req, @res, @next)
@@ -294,7 +294,7 @@ describe 'LaunchpadController', ->
 					email: @email
 				@UserRegistrationHandler.registerNewUser = sinon.stub()
 				@User.update = sinon.stub()
-				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@AuthenticationController.setRedirectInSession = sinon.stub()
 				@res.sendStatus = sinon.stub()
 				@next = sinon.stub()
 				@LaunchpadController.registerAdmin(@req, @res, @next)
@@ -318,7 +318,7 @@ describe 'LaunchpadController', ->
 					email: @email
 				@UserRegistrationHandler.registerNewUser = sinon.stub()
 				@User.update = sinon.stub()
-				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@AuthenticationController.setRedirectInSession = sinon.stub()
 				@res.sendStatus = sinon.stub()
 				@next = sinon.stub()
 				@LaunchpadController.registerAdmin(@req, @res, @next)
@@ -345,7 +345,7 @@ describe 'LaunchpadController', ->
 					email: @email
 				@UserRegistrationHandler.registerNewUser = sinon.stub().callsArgWith(1, new Error('woops'))
 				@User.update = sinon.stub()
-				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@AuthenticationController.setRedirectInSession = sinon.stub()
 				@res.json = sinon.stub()
 				@next = sinon.stub()
 				@LaunchpadController.registerAdmin(@req, @res, @next)
@@ -376,7 +376,7 @@ describe 'LaunchpadController', ->
 					email: @email
 				@UserRegistrationHandler.registerNewUser = sinon.stub().callsArgWith(1, null, @user)
 				@User.update = sinon.stub().callsArgWith(2, new Error('woops'))
-				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@AuthenticationController.setRedirectInSession = sinon.stub()
 				@res.json = sinon.stub()
 				@next = sinon.stub()
 				@LaunchpadController.registerAdmin(@req, @res, @next)
@@ -406,7 +406,7 @@ describe 'LaunchpadController', ->
 					email: @email
 				@UserRegistrationHandler.registerNewUser = sinon.stub().callsArgWith(1, null, @user)
 				@User.update = sinon.stub().callsArgWith(2, null)
-				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@AuthenticationController.setRedirectInSession = sinon.stub()
 				@SharelatexAuthController._createBackingAccountIfNeeded = sinon.stub().callsArgWith(2, null)
 				@UserGetter.getUser = sinon.stub().callsArgWith(1, null, {_id: '1234'})
 				@res.json = sinon.stub()
@@ -431,8 +431,8 @@ describe 'LaunchpadController', ->
 				@User.update.calledWith({_id: @user._id}, {$set: {isAdmin: true}}).should.equal true
 
 			it 'should have set a redirect in session', ->
-				@AuthenticationController._setRedirectInSession.callCount.should.equal 1
-				@AuthenticationController._setRedirectInSession.calledWith(@req, '/launchpad').should.equal true
+				@AuthenticationController.setRedirectInSession.callCount.should.equal 1
+				@AuthenticationController.setRedirectInSession.calledWith(@req, '/launchpad').should.equal true
 
 
 	describe 'registerExternalAuthAdmin', ->
@@ -453,7 +453,7 @@ describe 'LaunchpadController', ->
 					email: @email
 				@UserRegistrationHandler.registerNewUser = sinon.stub().callsArgWith(1, null, @user)
 				@User.update = sinon.stub().callsArgWith(2, null)
-				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@AuthenticationController.setRedirectInSession = sinon.stub()
 				@res.json = sinon.stub()
 				@next = sinon.stub()
 				@LaunchpadController.registerExternalAuthAdmin('ldap')(@req, @res, @next)
@@ -476,8 +476,8 @@ describe 'LaunchpadController', ->
 				@User.update.calledWith({_id: @user._id}, {$set: {isAdmin: true}}).should.equal true
 
 			it 'should have set a redirect in session', ->
-				@AuthenticationController._setRedirectInSession.callCount.should.equal 1
-				@AuthenticationController._setRedirectInSession.calledWith(@req, '/launchpad').should.equal true
+				@AuthenticationController.setRedirectInSession.callCount.should.equal 1
+				@AuthenticationController.setRedirectInSession.calledWith(@req, '/launchpad').should.equal true
 
 		describe 'when the authMethod is invalid', ->
 			beforeEach ->
@@ -489,7 +489,7 @@ describe 'LaunchpadController', ->
 					email: @email
 				@UserRegistrationHandler.registerNewUser = sinon.stub()
 				@User.update = sinon.stub()
-				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@AuthenticationController.setRedirectInSession = sinon.stub()
 				@res.sendStatus = sinon.stub()
 				@next = sinon.stub()
 				@LaunchpadController.registerExternalAuthAdmin('NOTAVALIDAUTHMETHOD')(@req, @res, @next)
@@ -514,7 +514,7 @@ describe 'LaunchpadController', ->
 					email: @email
 				@UserRegistrationHandler.registerNewUser = sinon.stub()
 				@User.update = sinon.stub()
-				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@AuthenticationController.setRedirectInSession = sinon.stub()
 				@res.sendStatus = sinon.stub()
 				@next = sinon.stub()
 				@LaunchpadController.registerExternalAuthAdmin('ldap')(@req, @res, @next)
@@ -539,7 +539,7 @@ describe 'LaunchpadController', ->
 					email: @email
 				@UserRegistrationHandler.registerNewUser = sinon.stub()
 				@User.update = sinon.stub()
-				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@AuthenticationController.setRedirectInSession = sinon.stub()
 				@res.sendStatus = sinon.stub()
 				@next = sinon.stub()
 				@LaunchpadController.registerExternalAuthAdmin('ldap')(@req, @res, @next)
@@ -561,7 +561,7 @@ describe 'LaunchpadController', ->
 					email: @email
 				@UserRegistrationHandler.registerNewUser = sinon.stub()
 				@User.update = sinon.stub()
-				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@AuthenticationController.setRedirectInSession = sinon.stub()
 				@res.sendStatus = sinon.stub()
 				@next = sinon.stub()
 				@LaunchpadController.registerExternalAuthAdmin('ldap')(@req, @res, @next)
@@ -586,7 +586,7 @@ describe 'LaunchpadController', ->
 					email: @email
 				@UserRegistrationHandler.registerNewUser = sinon.stub().callsArgWith(1, new Error('woops'))
 				@User.update = sinon.stub()
-				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@AuthenticationController.setRedirectInSession = sinon.stub()
 				@res.json = sinon.stub()
 				@next = sinon.stub()
 				@LaunchpadController.registerExternalAuthAdmin('ldap')(@req, @res, @next)
@@ -617,7 +617,7 @@ describe 'LaunchpadController', ->
 					email: @email
 				@UserRegistrationHandler.registerNewUser = sinon.stub().callsArgWith(1, null, @user)
 				@User.update = sinon.stub().callsArgWith(2, new Error('woops'))
-				@AuthenticationController._setRedirectInSession = sinon.stub()
+				@AuthenticationController.setRedirectInSession = sinon.stub()
 				@res.json = sinon.stub()
 				@next = sinon.stub()
 				@LaunchpadController.registerExternalAuthAdmin('ldap')(@req, @res, @next)
